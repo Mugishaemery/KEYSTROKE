@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Keystroke – Typing Speed Test</title>
+<style>
+:root{--bg:#f3f4f7;--panel:#fff;--text:#1e2230;--muted:#8a90a3;--line:#dcdfe8;--accent:#f0a500;--ok:#1f9d55;--bad:#d64545;--on:#1e2230;
+--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14161d;--panel:#1c1f29;--text:#e6e9f2;--muted:#6f768d;--line:#2d3243;--ok:#4cd38a;--bad:#ff6b6b;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#14161d;--panel:#1c1f29;--text:#e6e9f2;--muted:#6f768d;--line:#2d3243;--ok:#4cd38a;--bad:#ff6b6b;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;min-height:100vh}
+.wrap{max-width:860px;margin:0 auto;padding:24px 16px 48px}
+header{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:26px}
+.logo{font-family:var(--mono);font-size:1.5rem;font-weight:800}
+.logo span{color:var(--accent)}
+.opts{display:flex;gap:6px;flex-wrap:wrap;font-family:var(--mono);font-size:.9rem}
+.grp{display:flex;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:3px}
+.grp button{border:0;background:none;color:var(--muted);padding:7px 12px;border-radius:7px;font:inherit;cursor:pointer}
+.grp button[aria-pressed="true"]{background:var(--accent);color:var(--on);font-weight:800}
+.stats{display:flex;gap:28px;font-family:var(--mono);margin-bottom:12px;color:var(--muted)}
+.stats b{display:block;font-size:2rem;color:var(--accent);font-variant-numeric:tabular-nums;line-height:1.1}
+.stats span{font-size:.75rem;text-transform:uppercase;letter-spacing:.08em}
+.box{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;cursor:text}
+.box.focus{border-color:var(--accent)}
+#text{font-family:var(--mono);font-size:1.45rem;line-height:2.1rem;height:6.3rem;overflow:hidden;white-space:pre-wrap;word-break:break-word;color:var(--muted);user-select:none}
+#text .ok{color:var(--text)}
+#text .bad{color:var(--bad);background:color-mix(in srgb,var(--bad) 22%,transparent);border-radius:3px}
+#text .cur{box-shadow:inset 2px 0 0 var(--accent);animation:b 1s steps(2) infinite}
+@keyframes b{50%{box-shadow:none}}
+textarea{position:absolute;inset:0;width:100%;height:100%;opacity:0;resize:none;border:0;cursor:text}
+.hint{margin-top:10px;color:var(--muted);font-size:.88rem;font-family:var(--mono);display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:var(--panel);color:var(--text);padding:9px 16px;border-radius:10px;font:inherit;font-weight:700;cursor:pointer}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:var(--on)}
+.res{margin-top:18px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;text-align:center}
+.res h2{margin:0 0 14px;font-size:1.1rem}
+.rg{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:12px;margin-bottom:16px}
+.rg b{display:block;font-family:var(--mono);font-size:2.2rem;color:var(--accent)}
+.rg span{color:var(--muted);font-size:.8rem;text-transform:uppercase;letter-spacing:.06em}
+.new{color:var(--ok);font-weight:800;margin-bottom:10px}
+footer{margin-top:28px;text-align:center}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">key<span>stroke</span>_</div>
+    <div class="opts">
+      <div class="grp" id="g-mode"><button data-v="words" aria-pressed="true">words</button><button data-v="code" aria-pressed="false">code</button></div>
+      <div class="grp" id="g-time"><button data-v="15" aria-pressed="false">15s</button><button data-v="30" aria-pressed="true">30s</button><button data-v="60" aria-pressed="false">60s</button></div>
+    </div>
+  </header>
+
+  <div class="stats">
+    <div><b id="t">30</b><span>seconds</span></div>
+    <div><b id="w">0</b><span>wpm</span></div>
+    <div><b id="a">100</b><span>% accuracy</span></div>
+    <div><b id="bst">0</b><span>best wpm</span></div>
+  </div>
+
+  <div class="box" id="box">
+    <div id="text"></div>
+    <textarea id="ta" aria-label="Type here" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false"></textarea>
+  </div>
+  <div class="hint"><span id="h">Click the box and start typing. The timer starts on your first key.</span><span>Esc = new test</span></div>
+
+  <div class="res" id="res" hidden>
+    <h2>Time’s up!</h2>
+    <div class="new" id="new" hidden>🏆 New personal best!</div>
+    <div class="rg">
+      <div><b id="r-w">0</b><span>WPM</span></div>
+      <div><b id="r-a">0%</b><span>Accuracy</span></div>
+      <div><b id="r-c">0</b><span>Correct chars</span></div>
+      <div><b id="r-e">0</b><span>Mistakes</span></div>
+    </div>
+    <button class="btn pri" id="again">Try again</button>
+  </div>
+
+  <footer><button class="btn" id="theme">Toggle theme</button></footer>
+</div>
+
+<script>
+const $=s=>document.querySelector(s);
+const WORDS=("the be to of and a in that have it for not on with he as you do at this but his by from they we say her she or an will my one all would there their what so up out if about who get which go me when make can like time no just him know take people into year your good some could them see other than then now look only come its over think also back after use two how our work first well way even new want because any these give day most us build code page site learn study write read school road house water market friend family morning evening night coffee phone book river hill garden bright simple quick strong small large happy gentle future begin finish practice focus").split(' ');
+const SNIP=['const total = items.length;','document.querySelector("#app")','<div class="card"></div>','function add(a, b) { return a + b; }','for (let i = 0; i < n; i++) {}','fetch("/api/users").then(r => r.json())','.btn:hover { color: red; }','console.log("hello");','if (x > 0) { y = x * 2; }','<a href="/home">Home</a>','let arr = [1, 2, 3].map(n => n * 2);','body { margin: 0; padding: 0; }','const user = { name: "Emery", age: 20 };','SELECT * FROM users WHERE id = 1;','app.get("/", (req, res) => res.send("ok"));','<input type="text" id="name">','el.addEventListener("click", run);','display: flex; gap: 8px;','return items.filter(x => x.done);','<img src="logo.png" alt="Logo">'];
+let mode='words',secs=30,target='',typed='',started=false,ended=false,t0=0,iv=null,mistakes=0,prevLen=0,spans=[];
+const best=()=>{try{return +localStorage.getItem(`kst-${mode}-${secs}`)||0}catch(e){return 0}};
+const pick=a=>a[Math.random()*a.length|0];
+
+function gen(){
+  const out=[];const n=mode==='words'?260:90;
+  for(let i=0;i<n;i++)out.push(mode==='words'?pick(WORDS):pick(SNIP));
+  return out.join(' ');
+}
+function reset(){
+  clearInterval(iv);started=ended=false;typed='';prevLen=0;mistakes=0;
+  target=gen();$('#ta').value='';$('#ta').disabled=false;
+  const T=$('#text');T.innerHTML='';T.scrollTop=0;spans=[];
+  for(const ch of target){const s=document.createElement('span');s.textContent=ch;T.appendChild(s);spans.push(s)}
+  $('#t').textContent=secs;$('#w').textContent=0;$('#a').textContent=100;$('#bst').textContent=best();
+  $('#res').hidden=true;$('#h').textContent='Click the box and start typing. The timer starts on your first key.';
+  paint();
+}
+function paint(){
+  const n=typed.length;
+  spans.forEach((s,i)=>{s.className=i<n?(typed[i]===target[i]?'ok':'bad'):''});
+  if(spans[n]&&!ended)spans[n].classList.add('cur');
+  const c=spans[Math.min(n,spans.length-1)],T=$('#text');
+  if(c&&c.offsetTop-T.scrollTop>34)T.scrollTop=c.offsetTop-34;
+}
+const correct=()=>{let c=0;for(let i=0;i<typed.length;i++)if(typed[i]===target[i])c++;return c};
+function stats(){
+  const el=Math.max((Date.now()-t0)/1000,1);
+  const wpm=Math.round(correct()/5/(el/60));
+  const total=Math.max(typed.length+0,1);
+  const acc=typed.length?Math.max(0,Math.round((1-mistakes/Math.max(prevLen,1))*100)):100;
+  return{wpm,acc,el}
+}
+function tick(){
+  const s=stats(),left=Math.max(0,Math.ceil(secs-s.el));
+  $('#t').textContent=left;$('#w').textContent=s.wpm;$('#a').textContent=s.acc;
+  if(s.el>=secs)finish()
+}
+function finish(){
+  clearInterval(iv);ended=true;
+  const el=secs,c=correct(),wpm=Math.round(c/5/(el/60)),acc=typed.length?Math.max(0,Math.round((1-mistakes/Math.max(prevLen,1))*100)):100;
+  $('#ta').disabled=true;$('#box').classList.remove('focus');
+  $('#w').textContent=wpm;$('#a').textContent=acc;$('#t').textContent=0;
+  $('#r-w').textContent=wpm;$('#r-a').textContent=acc+'%';$('#r-c').textContent=c;$('#r-e').textContent=mistakes;
+  const isBest=wpm>best()&&wpm>0;
+  if(isBest){try{localStorage.setItem(`kst-${mode}-${secs}`,wpm)}catch(e){}}
+  $('#new').hidden=!isBest;$('#bst').textContent=best();
+  $('#res').hidden=false;paint();
+}
+$('#ta').addEventListener('input',e=>{
+  if(ended)return;
+  let v=e.target.value.replace(/\n/g,'');
+  if(v.length>target.length)v=v.slice(0,target.length);
+  if(!started){started=true;t0=Date.now();iv=setInterval(tick,100);$('#h').textContent='Go go go!'}
+  for(let i=prevLen;i<v.length;i++)if(v[i]!==target[i])mistakes++;
+  prevLen=Math.max(prevLen,v.length);
+  typed=v;if(e.target.value!==v)e.target.value=v;
+  paint();
+  if(typed.length>=target.length)finish();
+});
+$('#ta').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key==='Tab')e.preventDefault()});
+$('#ta').addEventListener('paste',e=>e.preventDefault());
+$('#ta').addEventListener('focus',()=>$('#box').classList.add('focus'));
+$('#ta').addEventListener('blur',()=>$('#box').classList.remove('focus'));
+$('#box').onclick=()=>$('#ta').focus();
+addEventListener('keydown',e=>{if(e.key==='Escape'){reset();$('#ta').focus()}});
+$('#again').onclick=()=>{reset();$('#ta').focus()};
+
+function bind(id,fn){document.querySelectorAll(`#${id} button`).forEach(b=>b.onclick=()=>{
+  document.querySelectorAll(`#${id} button`).forEach(x=>x.setAttribute('aria-pressed',x===b));fn(b.dataset.v);reset()})}
+bind('g-mode',v=>mode=v);bind('g-time',v=>secs=+v);
+$('#theme').onclick=()=>{const r=document.documentElement;
+  const dark=r.dataset.theme?r.dataset.theme==='dark':matchMedia('(prefers-color-scheme:dark)').matches;
+  r.dataset.theme=dark?'light':'dark'};
+reset();
+</script>
+</body>
+</html>
